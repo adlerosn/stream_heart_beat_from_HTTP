@@ -1,0 +1,9 @@
+.mypy_cache/**
+.mypy_cache
+**/*.pyc
+__pycache__/**
+__pycache__
+vuMeter_rendered.png
+vuMeter_rendered-png
+current_scale.txt
+heart_rate.txt
