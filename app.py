@@ -27,8 +27,13 @@ def heart_rate():
                 request.args
                 ).get('rate', '').strip()
     rate = int_or(raw_rate, 0)
-    if rate > 0 and rate <= 999:
-        HEART_RATE_PATH.write_text('%3d' % rate, 'utf-8')
+    if 0 < rate <= 999:
+        while True:
+            try:
+                HEART_RATE_PATH.write_text(f'{rate:3}', 'utf-8')
+                break
+            except Exception:
+                time.sleep(0.1)
     print(
         f'Received {request.method} with {rate=} and {raw_rate=} ' +
         f'at {time.time()}')

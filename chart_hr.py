@@ -48,9 +48,16 @@ class ScaleState(IntEnum):
 def read_rate() -> Tuple[int, float]:
     if not HEART_RATE_PATH.exists():
         return 0, 1024.0
-    rate = int(HEART_RATE_PATH.read_text('utf-8'))
-    age = max(0.0, time.time() -
-              HEART_RATE_PATH.stat(follow_symlinks=True).st_mtime)
+    rate = 0
+    age = 1024.0
+    while True:
+        try:
+            rate = int(HEART_RATE_PATH.read_text('utf-8'))
+            age = max(0.0, time.time() -
+                      HEART_RATE_PATH.stat(follow_symlinks=True).st_mtime)
+            break
+        except Exception:
+            time.sleep(0.1)
     return rate, age
 
 
@@ -100,14 +107,23 @@ class ScaleIntensive(ScaleAbstract):
 
 def set_profile(tp: Type[ScaleAbstract]) -> str:
     nm = tp.__name__
-    CURRENT_SCALE_PATH.write_text(nm, 'utf-8')
+    while True:
+        try:
+            CURRENT_SCALE_PATH.write_text(nm, 'utf-8')
+            break
+        except Exception:
+            time.sleep(0.1)
     return nm
 
 
 def get_profile() -> Type[ScaleAbstract]:
     if not CURRENT_SCALE_PATH.exists():
         set_profile(ScaleIntensive)
-    return globals()[CURRENT_SCALE_PATH.read_text('utf-8')]
+    while True:
+        try:
+            return globals()[CURRENT_SCALE_PATH.read_text('utf-8')]
+        except Exception:
+            time.sleep(0.1)
 
 
 def update_chart(profile: ScaleAbstract):
@@ -124,17 +140,22 @@ def update_chart(profile: ScaleAbstract):
     canvas.paste(bkg1, (0, 0), bkg1)
     canvas.paste(sprr, (0, 0), sprr)
     draw = PIL.ImageDraw.Draw(canvas)
-    font_box = FONT_SIZES[len(str(profile.hr))-1]
+    font_box = FONT_SIZES[len(str(profile.hr)) - 1]
     text_box = (
-        int(canvas.size[0]/2 - font_box[0]/2),
-        int(canvas.size[1] - font_box[1] - canvas.size[1]*.1),
+        int(canvas.size[0] / 2 - font_box[0] / 2),
+        int(canvas.size[1] - font_box[1] - canvas.size[1] * .1),
     )
     draw.text(text_box, f'{profile.hr}', (0, 0, 0), MONO_FONT,
               stroke_width=FONT_STROKE_W, stroke_fill=(255, 255, 255))
     canvas.paste(ovr0, (0, 0), ovr0)
     canvas.save('vuMeter_rendered-png', 'png', optimize=True, compress_level=0)
-    Path('vuMeter_rendered.png').write_bytes(
-        Path('vuMeter_rendered-png').read_bytes())
+    while True:
+        try:
+            Path('vuMeter_rendered.png').write_bytes(
+                Path('vuMeter_rendered-png').read_bytes())
+            break
+        except Exception:
+            time.sleep(0.1)
     Path('vuMeter_rendered-png').unlink()
     print(rank, vumeter, profile.hr, profile.ma)
 
